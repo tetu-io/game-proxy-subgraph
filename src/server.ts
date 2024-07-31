@@ -34,6 +34,8 @@ setInterval(async () => {
 // check system resources every 30 seconds
 setInterval(logSystemResources, 30000);
 
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Server is running on ${port} port`);
+  pawnshopPositionCache = await getPawnshopPositionsTask();
+
 });
