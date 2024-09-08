@@ -8,7 +8,7 @@
           "user-agent": "JS GraphQL"
         },
         "introspect": false,
-        "url": "https://graph.public-sonic.fantom.network/gql/subgraphs/name/belbix/sacra-sonic-beta2"
+        "url": "https://node.sacrasubgraphftm41.zeeve.io/ac0949db073e065c7a5b66e4d702f814d61cc19b92d04186/query/subgraphs/name/sacra"
       }
     }
   }

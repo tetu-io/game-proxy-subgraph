@@ -13,4 +13,5 @@ generates:
         BigInt: string
         Bytes: string
         Int8: number
-schema: https://graph.public-sonic.fantom.network/gql/subgraphs/name/belbix/sacra-sonic-beta2
+        Timestamp: number
+schema: https://node.sacrasubgraphftm41.zeeve.io/ac0949db073e065c7a5b66e4d702f814d61cc19b92d04186/query/subgraphs/name/sacra
