@@ -2,8 +2,8 @@ import { DocumentNode, gql } from '@apollo/client/core';
 
 export function getPawnshopPositionsQuery(): DocumentNode {
     return gql`
-        query PawnshopPositions($skip: Int!) {
-            pawnshopPositionEntities(first: 100, skip: $skip, where: {borrower_not: null, acquiredAmount_gt: "0"} orderBy: acquiredAmount) {
+        query PawnshopPositions($first: Int!, $skip: Int!) {
+            pawnshopPositionEntities(first: $first, skip: $skip, where: {borrower_not: null, acquiredAmount_gt: "0"} orderBy: acquiredAmount) {
                 posId
                 borrower {
                     id
