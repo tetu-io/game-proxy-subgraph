@@ -10,6 +10,7 @@ dotenv.config();
 const app = express();
 app.use(cors());
 const port = process.env.PORT || 3000;
+const PAWNSHOP_INTERVAL = +(process.env.PAWNSHOP_INTERVAL || 60000);
 
 let pawnshopPositionCache: PawnshopPositionEntity[] = [];
 
@@ -29,7 +30,7 @@ app.get('/pawnshop-positions', (req: Request, res: Response) => {
 
 setInterval(async () => {
   pawnshopPositionCache = await getPawnshopPositionsTask();
-}, 60000);
+}, PAWNSHOP_INTERVAL);
 
 // check system resources every 30 seconds
 setInterval(logSystemResources, 30000);

@@ -38,9 +38,10 @@ export async function getPawnshopPositions(): Promise<PawnshopPositionEntity[]> 
 
     let skip = 0;
     let fetchMore = true;
+    let turn = 1;
 
     while (fetchMore) {
-      console.log(`Fetching pawnshop positions with skip ${skip}`);
+      console.log(`Fetching pawnshop positions with skip ${skip} , turn ${turn}`);
       const { data } = await client.query({
         query: getPawnshopPositionsQuery(),
         variables: { skip },
@@ -52,6 +53,7 @@ export async function getPawnshopPositions(): Promise<PawnshopPositionEntity[]> 
       } else {
         fetchMore = false;
       }
+      turn++;
     }
   } catch (error) {
     console.error(`Error fetching pawnshop positions for subgraph url ${getSubgraphUrl()}: ${error}`);
