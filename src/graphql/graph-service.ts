@@ -30,24 +30,31 @@ export function createClient(url: string) {
 }
 
 export async function getPawnshopPositions(): Promise<PawnshopPositionEntity[]> {
-  const client = createClient(getSubgraphUrl() ?? 'no_url');
-
-  let skip = 0;
+  console.log('Fetching pawnshop positions');
   let allData: PawnshopPositionEntity[] = [];
-  let fetchMore = true;
 
-  while (fetchMore) {
-    const { data } = await client.query({
-      query: getPawnshopPositionsQuery(),
-      variables: { skip },
-    });
+  try {
+    const client = createClient(getSubgraphUrl() ?? 'no_url');
 
-    if (data.pawnshopPositionEntities && data.pawnshopPositionEntities.length > 0) {
-      allData = allData.concat(data.pawnshopPositionEntities);
-      skip += data.pawnshopPositionEntities.length;
-    } else {
-      fetchMore = false;
+    let skip = 0;
+    let fetchMore = true;
+
+    while (fetchMore) {
+      console.log(`Fetching pawnshop positions with skip ${skip}`);
+      const { data } = await client.query({
+        query: getPawnshopPositionsQuery(),
+        variables: { skip },
+      });
+
+      if (data.pawnshopPositionEntities && data.pawnshopPositionEntities.length > 0) {
+        allData = allData.concat(data.pawnshopPositionEntities);
+        skip += data.pawnshopPositionEntities.length;
+      } else {
+        fetchMore = false;
+      }
     }
+  } catch (error) {
+    console.error(`Error fetching pawnshop positions for subgraph url ${getSubgraphUrl()}: ${error}`);
   }
 
   return allData;
