@@ -27,10 +27,17 @@ app.get('/pawnshop-positions', (req: Request, res: Response) => {
 });
 
 
+async function processPawnshopPositions() {
+  while (true) {
+    try {
+      pawnshopPositionCache = await getPawnshopPositionsTask();
+    } catch (error) {
+      console.error('Error during fetch pawnshop items:', error);
+    }
+    await new Promise(resolve => setTimeout(resolve, PAWNSHOP_INTERVAL));
+  }
+}
 
-setInterval(async () => {
-  pawnshopPositionCache = await getPawnshopPositionsTask();
-}, PAWNSHOP_INTERVAL);
 
 // check system resources every 30 seconds
 setInterval(logSystemResources, 30000);
@@ -38,5 +45,5 @@ setInterval(logSystemResources, 30000);
 app.listen(port, async () => {
   console.log(`Server is running on ${port} port`);
   pawnshopPositionCache = await getPawnshopPositionsTask();
-
+  processPawnshopPositions();
 });
