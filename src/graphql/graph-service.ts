@@ -81,5 +81,34 @@ export async function getPawnshopPositions(): Promise<PawnshopPositionEntity[]> 
     console.error(`Error fetching pawnshop positions for subgraph url ${getSubgraphUrl()}: ${error}`);
   }
 
-  return allData;
+  return reduceListPrices(allData);
+}
+
+function reduceListPrices(items: PawnshopPositionEntity[]): PawnshopPositionEntity[] {
+  return items.map(item => {
+    if (item.collateralItem?.meta?.pawnshopItemStat) {
+      const newPawnshopItemStat = item.collateralItem.meta.pawnshopItemStat.map(stat => {
+        if (stat.prices) {
+          // Create a new stat object with the last 5 prices
+          return {
+            ...stat,
+            prices: stat.prices.slice(-5)
+          };
+        }
+        return stat;
+      });
+      // Create a new item object with the updated pawnshopItemStat
+      return {
+        ...item,
+        collateralItem: {
+          ...item.collateralItem,
+          meta: {
+            ...item.collateralItem.meta,
+            pawnshopItemStat: newPawnshopItemStat
+          }
+        }
+      };
+    }
+    return item;
+  });
 }
