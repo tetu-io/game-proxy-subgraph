@@ -73,6 +73,7 @@ export function getPawnshopPositionsQuery(): DocumentNode {
                     user {
                         id
                     }
+                    fragility
                     score
                     augmentationLevel
                     durability
