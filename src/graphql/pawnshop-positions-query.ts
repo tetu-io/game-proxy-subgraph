@@ -112,6 +112,7 @@ export function getPawnshopPositionsQuery(): DocumentNode {
                     }
                 }
                 collateralHero {
+                    id
                     meta {
                         id
                         uri
@@ -152,6 +153,12 @@ export function getPawnshopPositionsQuery(): DocumentNode {
                     uniqUri
                     uniqName
                     score
+                    tier
+                    ngLevel
+                    rebornAllowed
+                    lastPayToken {
+                        id
+                    }
                     maxBiomeCompleted
                     nextLevelExperienceRequire
                     previousLevelExperienceRequire
