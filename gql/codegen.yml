@@ -14,4 +14,4 @@ generates:
         Bytes: string
         Int8: number
         Timestamp: number
-schema: https://node.sacrasubgraphftm41.zeeve.io/ac0949db073e065c7a5b66e4d702f814d61cc19b92d04186/query/subgraphs/name/sacra
+schema: https://graph.tetu.io/subgraphs/name/sacra-sonic
