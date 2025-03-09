@@ -1,7 +1,8 @@
 import {ApolloClient, createHttpLink, InMemoryCache} from '@apollo/client/core';
 import { getPawnshopPositionsQuery } from './pawnshop-positions-query';
-import { PawnshopPositionEntity } from '../../generated/gql';
 import dotenv from 'dotenv';
+import { getTransactionsFromQuery } from './transactions-from-query';
+import { PawnshopPositionEntity, TransactionEntity } from '../../gql/gql';
 
 dotenv.config();
 
@@ -10,6 +11,10 @@ const PAWNSHOP_MAX_RETRIES = +(process.env.PAWNSHOP_MAX_RETRIES || 10);
 
 function getSubgraphUrl() {
   return process.env.SUBGRAPH_URL;
+}
+
+function getTransactionsSubgraphUrl() {
+  return process.env.TRANSACTIONS_SUBGRAPH_URL || 'https://graph.tetu.io/subgraphs/name/sacra-sonic-transactions';
 }
 
 export function createClient(url: string) {
@@ -46,9 +51,28 @@ async function fetchPawnshopPositionsWithRetry(client: ApolloClient<any>, skip: 
       return data;
     } catch (error) {
       retries++;
-      console.error(`Attempt ${retries} failed: ${error}`);
+      console.error(`Attempt ${retries} failed: ${error} PawnshopPositionsQuery`);
       if (retries === PAWNSHOP_MAX_RETRIES) {
-        throw new Error(`Failed to fetch data after ${PAWNSHOP_MAX_RETRIES} attempts`);
+        throw new Error(`Failed PawnshopPositionsQuery to fetch data after ${PAWNSHOP_MAX_RETRIES} attempts`);
+      }
+    }
+  }
+}
+
+async function fetchTransactionsFromWithRetry(client: ApolloClient<any>, timestamp: string, skip: number, first: number) {
+  let retries = 0;
+  while (retries < PAWNSHOP_MAX_RETRIES) {
+    try {
+      const { data } = await client.query({
+        query: getTransactionsFromQuery(),
+        variables: { skip, first, timestamp },
+      });
+      return data;
+    } catch (error) {
+      retries++;
+      console.error(`Attempt ${retries} failed: ${error} TransactionsFromQuery`);
+      if (retries === PAWNSHOP_MAX_RETRIES) {
+        throw new Error(`Failed TransactionsFromQuery to fetch data after ${PAWNSHOP_MAX_RETRIES} attempts`);
       }
     }
   }
@@ -82,6 +106,36 @@ export async function getPawnshopPositions(): Promise<PawnshopPositionEntity[]> 
   }
 
   return reduceListPrices(allData);
+}
+
+export async function getTransactionsFrom(timestamp: string): Promise<TransactionEntity[]> {
+  console.log('Fetching transaction');
+  let allData: TransactionEntity[] = [];
+
+  try {
+    const client = createClient(getTransactionsSubgraphUrl() ?? 'no_url');
+
+    let skip = 0;
+    let fetchMore = true;
+    let turn = 1;
+
+    while (fetchMore) {
+      console.log(`Fetching transactions with skip ${skip} , turn ${turn}`);
+      const data = await fetchTransactionsFromWithRetry(client, timestamp, skip, PAWNSHOP_FIRST);
+
+      if (data.transactionEntities && data.transactionEntities.length > 0) {
+        allData = allData.concat(data.transactionEntities);
+        skip += data.transactionEntities.length;
+      } else {
+        fetchMore = false;
+      }
+      turn++;
+    }
+  } catch (error) {
+    console.error(`Error fetching transactions for subgraph url ${getTransactionsSubgraphUrl()}: ${error}`);
+  }
+
+  return allData;
 }
 
 function reduceListPrices(items: PawnshopPositionEntity[]): PawnshopPositionEntity[] {

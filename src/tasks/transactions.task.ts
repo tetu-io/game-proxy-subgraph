@@ -1,11 +1,14 @@
-import { getPawnshopPositions } from '../graphql/graph-service';
-import { PawnshopPositionEntity } from '../../gql/gql';
+import { TransactionEntity } from '../../gql/gql';
+import { getTransactionsFrom } from '../graphql/graph-service';
 
-export async function getPawnshopPositionsTask(): Promise<PawnshopPositionEntity[]> {
+// const START_TIMESTAMP = '1741824000'
+const START_TIMESTAMP = '1740960000'
+
+export async function getTransactionsTask(): Promise<TransactionEntity[]> {
   const startTime = Date.now();
   try {
-    const data = await getPawnshopPositions();
-    console.log(`Fetched ${data.length} pawnshop positions`);
+    const data = await getTransactionsFrom(START_TIMESTAMP);
+    console.log(`Fetched ${data.length} transactions`);
     const lastCacheUpdate = new Date();
     const duration = Date.now() - startTime;
     console.log(`Cache updated at ${lastCacheUpdate}. Update took ${duration} ms`);
