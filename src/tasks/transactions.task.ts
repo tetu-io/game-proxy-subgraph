@@ -1,8 +1,8 @@
 import { TransactionEntity } from '../../gql/gql';
 import { getTransactionsFrom } from '../graphql/graph-service';
 
-// const START_TIMESTAMP = '1741824000'
-const START_TIMESTAMP = '1740960000'
+const START_TIMESTAMP = '1741564800'
+// const START_TIMESTAMP = '1740960000'
 
 export async function getTransactionsTask(): Promise<TransactionEntity[]> {
   const startTime = Date.now();
