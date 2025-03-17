@@ -10,8 +10,10 @@ export function getTransactionsFromQuery(): DocumentNode {
                 }
                 first: $first,
                 skip: $skip,
-                orderBy: timestamp
-                orderDirection: desc
+                orderBy: timestamp,
+                orderDirection: asc,
+                orderBy2: id,         
+                orderDirection2: desc
             ){
                 id
                 from
