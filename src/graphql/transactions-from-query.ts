@@ -13,6 +13,7 @@ export function getTransactionsFromQuery(): DocumentNode {
                 orderBy: timestamp
                 orderDirection: desc
             ){
+                id
                 from
                 gasUsed
                 gasPrice

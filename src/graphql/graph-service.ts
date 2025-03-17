@@ -95,7 +95,7 @@ export async function getPawnshopPositions(): Promise<PawnshopPositionEntity[]> 
 
       if (data.pawnshopPositionEntities && data.pawnshopPositionEntities.length > 0) {
         allData = allData.concat(data.pawnshopPositionEntities);
-        skip += data.pawnshopPositionEntities.length;
+        skip += PAWNSHOP_FIRST;
       } else {
         fetchMore = false;
       }
@@ -125,7 +125,7 @@ export async function getTransactionsFrom(timestamp: string): Promise<Transactio
 
       if (data.transactionEntities && data.transactionEntities.length > 0) {
         allData = allData.concat(data.transactionEntities);
-        skip += data.transactionEntities.length;
+        skip += PAWNSHOP_FIRST;
       } else {
         fetchMore = false;
       }
