@@ -5,6 +5,7 @@ import { logSystemResources } from './utils/monitoring.utils';
 import { getPawnshopPositionsTask } from './tasks/pawnshop.task';
 import { PawnshopPositionEntity, TransactionEntity } from '../gql/gql';
 import { getTransactionsTask } from './tasks/transactions.task';
+import { formatTransactions } from './service/transactions.service';
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ const TRANSACTION_INTERVAL = +(process.env.TRANSACTION_INTERVAL || 3600000);
 
 let pawnshopPositionCache: PawnshopPositionEntity[] = [];
 let transactionsCache: TransactionEntity[] = [];
+let transactionsFormattedCache: Record<number, Record<string, string>> = {};
 
 app.get('/pawnshop-positions', (req: Request, res: Response) => {
   try {
@@ -42,6 +44,15 @@ app.get('/transactions', (req: Request, res: Response) => {
   }
 });
 
+app.get('/transactions-formatted', (req: Request, res: Response) => {
+  try {
+    res.send(transactionsFormattedCache);
+  } catch (error) {
+    console.error('Failed to get data:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
 
 async function processPawnshopPositions() {
   while (true) {
@@ -58,6 +69,7 @@ async function processTransactions() {
   while (true) {
     try {
       transactionsCache = await getTransactionsTask();
+      transactionsFormattedCache = formatTransactions(transactionsCache);
     } catch (error) {
       console.error('Error during fetch transactions:', error);
     }
@@ -74,5 +86,6 @@ app.listen(port, async () => {
   pawnshopPositionCache = await getPawnshopPositionsTask();
   processPawnshopPositions();
   transactionsCache = await getTransactionsTask();
+  transactionsFormattedCache = formatTransactions(transactionsCache);
   processTransactions();
 });
