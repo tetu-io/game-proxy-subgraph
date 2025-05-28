@@ -120,10 +120,32 @@ export async function getTransactionsFrom(timestamp: string): Promise<Transactio
     let turn = 1;
 
     while (fetchMore) {
-      console.log(`Fetching transactions with skip ${skip} , turn ${turn}`);
-      const data = await fetchTransactionsFromWithRetry(client, timestamp, skip, PAWNSHOP_FIRST);
+      console.log(`Fetching transactions with skip ${skip}, turn ${turn}`);
 
-      if (data.transactionEntities && data.transactionEntities.length > 0) {
+      const MAX_RETRIES = 3;
+      let attempt = 0;
+      let success = false;
+      let data: any;
+
+      while (attempt < MAX_RETRIES && !success) {
+        try {
+          data = await fetchTransactionsFromWithRetry(client, timestamp, skip, PAWNSHOP_FIRST);
+          // Проверка валидности ответа
+          if (!data?.transactionEntities || !Array.isArray(data.transactionEntities)) {
+            throw new Error('Invalid data structure: transactionEntities missing or not an array');
+          }
+          success = true;
+        } catch (err) {
+          attempt++;
+          console.warn(`Attempt ${attempt} failed to fetch transactions: ${err}`);
+          if (attempt >= MAX_RETRIES) {
+            throw new Error(`Failed after ${MAX_RETRIES} attempts to fetch transactions with skip ${skip}`);
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // backoff
+        }
+      }
+
+      if (data.transactionEntities.length > 0) {
         allData = allData.concat(data.transactionEntities);
         skip += PAWNSHOP_FIRST;
       } else {
