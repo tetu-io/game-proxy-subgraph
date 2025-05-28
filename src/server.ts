@@ -65,16 +65,44 @@ async function processPawnshopPositions() {
   }
 }
 
-async function processTransactions() {
+async function processTransactions(): Promise<void> {
   while (true) {
     try {
-      transactionsCache = await getTransactionsTask();
-      transactionsFormattedCache = formatTransactions(transactionsCache);
+      const lastTimestamp = getLastTransactionTimestamp(transactionsCache);
+      const newTransactions = await getTransactionsTask(lastTimestamp);
+
+      const existingIds = new Set(transactionsCache.map(tx => tx.id));
+
+      const uniqueNewTransactions = newTransactions.filter(tx => !existingIds.has(tx.id));
+
+      if (uniqueNewTransactions.length > 0) {
+        transactionsCache = transactionsCache.concat(uniqueNewTransactions);
+        transactionsFormattedCache = formatTransactions(transactionsCache);
+
+        console.log(`Added ${uniqueNewTransactions.length} new transactions.`);
+      } else {
+        console.log('No new unique transactions found.');
+      }
     } catch (error) {
       console.error('Error during fetch transactions:', error);
     }
-    await new Promise(resolve => setTimeout(resolve, TRANSACTION_INTERVAL));
+
+    await delay(TRANSACTION_INTERVAL);
   }
+}
+
+function getLastTransactionTimestamp(transactions: TransactionEntity[]): string | undefined {
+  if (!transactions.length) return undefined;
+
+  const latest = transactions.reduce((max, tx) =>
+    Number(tx?.timestamp || 0) > Number(max?.timestamp || 0) ? tx : max
+  );
+
+  return latest?.timestamp || '0';
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 

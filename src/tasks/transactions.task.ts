@@ -6,10 +6,10 @@ const START_TIMESTAMP = '1741564800'
 // test timestamp
 // const START_TIMESTAMP = '1743478407'
 
-export async function getTransactionsTask(): Promise<TransactionEntity[]> {
+export async function getTransactionsTask(startTimestamp: string | undefined = undefined): Promise<TransactionEntity[]> {
   const startTime = Date.now();
   try {
-    const data = await getTransactionsFrom(START_TIMESTAMP);
+    const data = await getTransactionsFrom(startTimestamp ? startTimestamp : START_TIMESTAMP);
     console.log(`Fetched ${data.length} transactions`);
     const lastCacheUpdate = new Date();
     const duration = Date.now() - startTime;
