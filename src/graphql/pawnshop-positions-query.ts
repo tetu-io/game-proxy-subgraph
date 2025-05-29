@@ -63,6 +63,12 @@ export function getPawnshopPositionsQuery(): DocumentNode {
                             }
                             amount
                         }
+                        params {
+                            consumableAttributes {
+                                ids
+                                values
+                            }
+                        }
                     }
                     dungeon {
                         id
