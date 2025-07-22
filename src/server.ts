@@ -6,6 +6,9 @@ import { getPawnshopPositionsTask } from './tasks/pawnshop.task';
 import { PawnshopPositionEntity, TransactionEntity } from '../gql/gql';
 import { getTransactionsTask } from './tasks/transactions.task';
 import { formatTransactions } from './service/transactions.service';
+import { getMinPricesPawnshop } from './utils/price.utils';
+import { getAccountTask } from './tasks/account.task';
+import { AccountStatModel } from './models/account-stat.model';
 
 dotenv.config();
 
@@ -17,8 +20,10 @@ const PAWNSHOP_INTERVAL = +(process.env.PAWNSHOP_INTERVAL || 60000);
 const TRANSACTION_INTERVAL = +(process.env.TRANSACTION_INTERVAL || 3600000);
 
 let pawnshopPositionCache: PawnshopPositionEntity[] = [];
+let pawnshopMinPriceCache: Map<string, number> = new Map();
 let transactionsCache: TransactionEntity[] = [];
 let transactionsFormattedCache: Record<number, Record<string, string>> = {};
+let userStatCache: AccountStatModel[] = [];
 
 app.get('/pawnshop-positions', (req: Request, res: Response) => {
   try {
@@ -26,6 +31,46 @@ app.get('/pawnshop-positions', (req: Request, res: Response) => {
     const first = parseInt(req.query.first as string) || 10000;
     const paginatedData = pawnshopPositionCache.slice(skip, skip + first);
     res.send(paginatedData);
+  } catch (error) {
+    console.error('Failed to get data:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+app.get('/pawnshop-min-prices', (req: Request, res: Response) => {
+  try {
+    res.send(JSON.stringify(Object.fromEntries(pawnshopMinPriceCache)));
+  } catch (error) {
+    console.error('Failed to get data:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+app.get('/pawnshop-min-prices/:itemId', (req: Request, res: Response) => {
+  try {
+    const itemId = req.params.itemId.toLowerCase();
+    const price = pawnshopMinPriceCache.get(itemId) || 0;
+    res.send({ itemId, price });
+  } catch (error) {
+    console.error('Failed to get data:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+app.get('/account-stat', (req: Request, res: Response) => {
+  try {
+    res.send(userStatCache);
+  } catch (error) {
+    console.error('Failed to get data:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+app.get('/account-stat/:userId', (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId.toLowerCase();
+    const userStat = userStatCache.find(user => user.id === userId);
+    res.send(userStat);
   } catch (error) {
     console.error('Failed to get data:', error);
     res.status(500).send('Internal server error');
@@ -58,6 +103,7 @@ async function processPawnshopPositions() {
   while (true) {
     try {
       pawnshopPositionCache = await getPawnshopPositionsTask();
+      pawnshopMinPriceCache = getMinPricesPawnshop(pawnshopPositionCache);
     } catch (error) {
       console.error('Error during fetch pawnshop items:', error);
     }
@@ -91,6 +137,17 @@ async function processTransactions(): Promise<void> {
   }
 }
 
+async function processAccountStat(): Promise<void> {
+  while (true) {
+    try {
+      userStatCache = await getAccountTask();
+    } catch (error) {
+      console.error('Error during fetch account stat:', error);
+    }
+    await delay(TRANSACTION_INTERVAL);
+  }
+}
+
 function getLastTransactionTimestamp(transactions: TransactionEntity[]): string | undefined {
   if (!transactions.length) return undefined;
 
@@ -112,8 +169,11 @@ setInterval(logSystemResources, 30000);
 app.listen(port, async () => {
   console.log(`Server is running on ${port} port`);
   pawnshopPositionCache = await getPawnshopPositionsTask();
+  pawnshopMinPriceCache = getMinPricesPawnshop(pawnshopPositionCache);
   processPawnshopPositions();
   transactionsCache = await getTransactionsTask();
   transactionsFormattedCache = formatTransactions(transactionsCache);
   processTransactions();
+  userStatCache = await getAccountTask();
+  processAccountStat();
 });
