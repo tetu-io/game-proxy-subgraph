@@ -18,12 +18,17 @@ const port = process.env.PORT || 3000;
 const PAWNSHOP_INTERVAL = +(process.env.PAWNSHOP_INTERVAL || 60000);
 // default every 1 hour
 const TRANSACTION_INTERVAL = +(process.env.TRANSACTION_INTERVAL || 3600000);
+const VERSION = '1.0.0';
 
 let pawnshopPositionCache: PawnshopPositionEntity[] = [];
 let pawnshopMinPriceCache: Map<string, number> = new Map();
 let transactionsCache: TransactionEntity[] = [];
 let transactionsFormattedCache: Record<number, Record<string, string>> = {};
 let userStatCache: AccountStatModel[] = [];
+
+app.get('/', (req: Request, res: Response) => {
+  return VERSION;
+})
 
 app.get('/pawnshop-positions', (req: Request, res: Response) => {
   try {
@@ -171,9 +176,9 @@ app.listen(port, async () => {
   pawnshopPositionCache = await getPawnshopPositionsTask();
   pawnshopMinPriceCache = getMinPricesPawnshop(pawnshopPositionCache);
   processPawnshopPositions();
+  userStatCache = await getAccountTask();
+  processAccountStat();
   transactionsCache = await getTransactionsTask();
   transactionsFormattedCache = formatTransactions(transactionsCache);
   processTransactions();
-  userStatCache = await getAccountTask();
-  processAccountStat();
 });

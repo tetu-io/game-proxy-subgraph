@@ -12,5 +12,4 @@ RUN yarn build
 
 EXPOSE 8200
 
-# Команда для запуска приложения
 CMD ["node", "dist/src/server.js"]
